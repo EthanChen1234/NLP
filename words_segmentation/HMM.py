@@ -27,20 +27,19 @@ class HMM(object):
 
     # 计算转移概率、发射概率以及初始概率
     def train(self, path):
-
         # 重置几个概率矩阵
         self.try_load_model(False)
 
         # 统计状态出现次数，求p(o)
+        # eg: {'B': 12, 'M': 4, 'E': 12, 'S': 14}
         Count_dic = {}
 
         # 初始化参数
         def init_parameters():
-            for state in self.state_list:  # 观测概率矩阵
+            for state in self.state_list:
                 self.A_dic[state] = {s: 0.0 for s in self.state_list}  # 状态转移矩阵
                 self.Pi_dic[state] = 0.0  # 初始概率矩阵
-                self.B_dic[state] = {}
-
+                self.B_dic[state] = {}    # 观测概率矩阵
                 Count_dic[state] = 0
 
         def makeLabel(text):
@@ -49,7 +48,6 @@ class HMM(object):
                 out_text.append('S')
             else:
                 out_text += ['B'] + ['M'] * (len(text) - 2) + ['E']
-
             return out_text
 
         init_parameters()
@@ -58,19 +56,20 @@ class HMM(object):
         words = set()
         with open(path, encoding='utf8') as f:
             for line in f:
+
                 line_num += 1
 
                 line = line.strip()
                 if not line:
                     continue
 
-                word_list = [i for i in line if i != ' ']
-                words |= set(word_list)  # 求并集合，更新字的集合
+                word_list = [i for i in line if i != ' ']  # ['过', '去', '的', '一', '年', '，']
+                words |= set(word_list)  # 求并集合，更新字（不是词）的集合
 
-                linelist = line.split()
+                line_list = line.split()
 
-                line_state = []  # ['B', 'S', 'BE', 'BME', 'S', ...]
-                for w in linelist:
+                line_state = []  #
+                for w in line_list:
                     line_state.extend(makeLabel(w))
 
                 assert len(word_list) == len(line_state)
@@ -78,18 +77,18 @@ class HMM(object):
                 for k, v in enumerate(line_state):
                     Count_dic[v] += 1
                     if k == 0:
-                        self.Pi_dic[v] += 1  # 每个句子的第一个字的状态，用于计算初始状态概率 {'B': 0.0, 'S': 0.0}
+                        self.Pi_dic[v] += 1  # 每个句子的第一个字的状态的个数，用于计算初始状态概率
                     else:
                         self.A_dic[line_state[k - 1]][v] += 1  # 计算转移概率
                         self.B_dic[line_state[k]][word_list[k]] = \
                             self.B_dic[line_state[k]].get(word_list[k], 0) + 1.0  # 计算发射概率
 
         self.Pi_dic = {k: v * 1.0 / line_num for k, v in self.Pi_dic.items()}
-        self.A_dic = {k: {k1: v1 / Count_dic[k] for k1, v1 in v.items()}
-                      for k, v in self.A_dic.items()}
+        self.A_dic = {k: {k1: v1 / Count_dic[k] for k1, v1 in v.items()} for k, v in self.A_dic.items()}
+
         # 加1平滑
-        self.B_dic = {k: {k1: (v1 + 1) / Count_dic[k] for k1, v1 in v.items()}
-                      for k, v in self.B_dic.items()}
+        self.B_dic = {k: {k1: (v1 + 1) / Count_dic[k] for k1, v1 in v.items()} for k, v in self.B_dic.items()}
+
         # 序列化
         import pickle
         with open(self.model_file, 'wb') as f:
@@ -155,12 +154,12 @@ class HMM(object):
 
 if __name__ == '__main__':
     hmm = HMM()
-    #hmm.train('./data/data/trainCorpus.txt_utf8')
+    hmm.train('C:\\DATASET\\words_seg_HMM\\trainCorpus.txt_utf8')
 
-    text = '我爱中国 半年'
-    res = hmm.cut(text)
-    print(text)
-    print(str(list(res)))
+    # text = '我爱中国 半年'
+    # res = hmm.cut(text)
+    # print(text)
+    # print(str(list(res)))
 
 
 
