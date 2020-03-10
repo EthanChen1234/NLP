@@ -1,25 +1,21 @@
 class HMM(object):
     def __init__(self):
-        import os
-
         # 主要是用于存取算法中间结果，不用每次都训练模型
-        self.model_file = 'C:\\DATASET\\data\\hmm_model.pkl'
-
+        self.model_file = 'D:\\PROJECTS\\DATA\\HMM_CHN_SEG\\hmm_model.pkl'
         # 状态值集合
         self.state_list = ['B', 'M', 'E', 'S']
         # 参数加载,用于判断是否需要重新加载model_file
         self.load_para = False
 
     # 用于加载已计算的中间结果，当需要重新训练时，需初始化清空结果
-    def try_load_model(self, trained):
-        if trained:
+    def try_load_model(self, is_trained):
+        if is_trained:
             import pickle
             with open(self.model_file, 'rb') as f:
                 self.A_dic = pickle.load(f)
                 self.B_dic = pickle.load(f)
                 self.Pi_dic = pickle.load(f)
                 self.load_para = True
-
         else:
             # 状态转移概率（状态->状态的条件概率）
             self.A_dic = {}
@@ -104,46 +100,48 @@ class HMM(object):
         return self
 
     def viterbi(self, text, states, start_p, trans_p, emit_p):
-        # states, 状态空间。 start_p, trans_p, emit_p 初始状态矩阵、转移概率矩阵、发射概率矩阵
-        V = [{}]  # [{'B': 0.00329}]
-        path = {}  # path记录的是当前时刻状态为i时的最佳路径
+        ''' states, 状态序列。 start_p, trans_p, emit_p 初始状态矩阵、转移概率矩阵、发射概率矩阵 '''
+        # step1, initialize
+        V = [{}]  # 当前时刻、状体的概率
+        path = {}  # 当前时刻、状体的路径
         for y in states:
             V[0][y] = start_p[y] * emit_p[y].get(text[0], 0)
             path[y] = [y]
+        # V    [{'B': 0.0023862690310792406, 'M': 0.0, 'E': 0.0, 'S': 0.0008238177173969805}]
+        # path {'B': ['B'], 'M': ['M'], 'E': ['E'], 'S': ['S']}
+
+        # step2, recursion
+        chars_all = set(emit_p['B'].keys()) | set(emit_p['M'].keys()) | set(emit_p['E'].keys()) | set(emit_p['S'].keys())
         for t in range(1, len(text)):
             V.append({})
-            newpath = {}
-
+            new_path = {}
             # 检验训练的发射概率矩阵中是否有该字
-            neverSeen = text[t] not in emit_p['S'].keys() and \
-                        text[t] not in emit_p['M'].keys() and \
-                        text[t] not in emit_p['E'].keys() and \
-                        text[t] not in emit_p['B'].keys()
+            neverSeen = text[t] not in chars_all
             for y in states:
                 emitP = emit_p[y].get(text[t], 0) if not neverSeen else 1.0  # 设置未知字单独成词
-                (prob, state) = max(
-                    [(V[t - 1][y0] * trans_p[y0].get(y, 0) *
-                      emitP, y0)
-                     for y0 in states if V[t - 1][y0] > 0])
+                (prob, state) = \
+                    max([(V[t - 1][y0] * trans_p[y0].get(y, 0) * emitP, y0) for y0 in states if V[t - 1][y0] > 0])
                 V[t][y] = prob
-                newpath[y] = path[state] + [y]
-            path = newpath
+                new_path[y] = path[state] + [y]
+            path = new_path
+        # V, shape = len(text) x len(states)
+        # path, shape = len(states) x len(text)
 
+        # step3, terminate
         if emit_p['M'].get(text[-1], 0) > emit_p['S'].get(text[-1], 0):
             (prob, state) = max([(V[len(text) - 1][y], y) for y in ('E', 'M')])
         else:
             (prob, state) = max([(V[len(text) - 1][y], y) for y in states])
 
-        return (prob, path[state])
+        return prob, path[state]
 
     def cut(self, text):
-        import os
         if not self.load_para:
             self.try_load_model(True)
-        prob, pos_list = self.viterbi(text, self.state_list, self.Pi_dic, self.A_dic, self.B_dic)
+        prob, positions = self.viterbi(text, self.state_list, self.Pi_dic, self.A_dic, self.B_dic)
         begin, next = 0, 0
         for i, char in enumerate(text):
-            pos = pos_list[i]
+            pos = positions[i]
             if pos == 'B':
                 begin = i
             elif pos == 'E':
@@ -154,13 +152,24 @@ class HMM(object):
                 next = i + 1
         if next < len(text):
             yield text[next:]
-hmm = HMM()
-#hmm.train('./data/data/trainCorpus.txt_utf8')
 
-text = '我爱中国 半年'
-res = hmm.cut(text)
-print(text)
-print(str(list(res)))
+if __name__ == '__main__':
+    hmm = HMM()
+    #hmm.train('./data/data/trainCorpus.txt_utf8')
+
+    text = '我爱中国 半年'
+    res = hmm.cut(text)
+    print(text)
+    print(str(list(res)))
+
+
+
+
+
+
+
+
+
 
 
 
