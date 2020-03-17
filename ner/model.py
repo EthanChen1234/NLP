@@ -1,11 +1,11 @@
 # encoding = utf8
 import numpy as np
 import tensorflow as tf
-from NER.data_utils import iobes_iob
+from data_utils import iobes_iob
 from tensorflow.contrib.crf import crf_log_likelihood
 from tensorflow.contrib.crf import viterbi_decode
 from tensorflow.contrib.layers.python.layers import initializers
-from NER.utils import result_to_json
+from utils import result_to_json
 
 
 class Model(object):
@@ -318,7 +318,7 @@ class Model(object):
             self.dropout: 1.0,
         }
         if is_train:
-            [self.targets] = feed_dictnp.asarray(tags)
+            feed_dict[self.targets] = np.asarray(tags)
             feed_dict[self.dropout] = self.config["dropout_keep"]
         return feed_dict
 

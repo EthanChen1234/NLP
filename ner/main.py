@@ -15,7 +15,8 @@ from model import Model
 from utils import get_logger, make_path, clean, create_model, save_model
 from utils import print_config, save_config, load_config, test_ner
 
-root_path=os.getcwd()+os.sep
+# root_path = os.getcwd()+os.sep
+root_path = 'D:\\PROJECTS\\DATA\\NER\\'
 flags = tf.app.flags
 flags.DEFINE_boolean("clean",       True,      "clean train folder")
 flags.DEFINE_boolean("train",       False,      "Whether train the model")
@@ -45,10 +46,10 @@ flags.DEFINE_string("vocab_file",   "vocab.json",   "File for vocab")
 flags.DEFINE_string("config_file",  "config_file",  "File for config")
 flags.DEFINE_string("script",       "conlleval",    "evaluation script")
 flags.DEFINE_string("result_path",  "result",       "Path for results")
-flags.DEFINE_string("emb_file",     os.path.join(root_path+"data", "vec.txt"),  "Path for pre_trained embedding")
-flags.DEFINE_string("train_file",   os.path.join(root_path+"data", "train.txt"),  "Path for train data")
-flags.DEFINE_string("dev_file",     os.path.join(root_path+"data", "dev.txt"),    "Path for dev data")
-flags.DEFINE_string("test_file",    os.path.join(root_path+"data", "test.txt"),   "Path for test data")
+flags.DEFINE_string("emb_file",     os.path.join(root_path, "vec.txt"),  "Path for pre_trained embedding")
+flags.DEFINE_string("train_file",   os.path.join(root_path, "train.txt"),  "Path for train data")
+flags.DEFINE_string("dev_file",     os.path.join(root_path, "dev.txt"),    "Path for dev data")
+flags.DEFINE_string("test_file",    os.path.join(root_path, "test.txt"),   "Path for test data")
 
 flags.DEFINE_string("model_type", "idcnn", "Model type, can be idcnn or bilstm")
 #flags.DEFINE_string("model_type", "bilstm", "Model type, can be idcnn or bilstm")
@@ -175,7 +176,7 @@ def train():
                         iteration = step // steps_per_epoch + 1
                         logger.info("iteration:{} step:{}/{}, "
                                     "NER loss:{:>9.6f}".format(
-                            iteration, step%steps_per_epoch, steps_per_epoch, np.mean(loss)))
+                            iteration, step % steps_per_epoch, steps_per_epoch, np.mean(loss)))
                         loss = []
     
                # best = evaluate(sess, model, "dev", dev_manager, id_to_tag, logger)
