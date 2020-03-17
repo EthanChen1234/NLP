@@ -1,0 +1,5 @@
+/ckpt/
+/log/
+/result/
+*.txt
+*.pkl
