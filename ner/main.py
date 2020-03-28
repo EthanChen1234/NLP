@@ -16,10 +16,11 @@ from utils import get_logger, make_path, clean, create_model, save_model
 from utils import print_config, save_config, load_config, test_ner
 
 # root_path = os.getcwd()+os.sep
-root_path = 'D:\\PROJECTS\\DATA\\NER\\'
+# root_path = 'D:\\PROJECTS\\DATA\\NER\\'
+root_path = 'C:\\DATASET\\NER\\'
 flags = tf.app.flags
 flags.DEFINE_boolean("clean",       True,      "clean train folder")
-flags.DEFINE_boolean("train",       False,      "Whether train the model")
+flags.DEFINE_boolean("train",       True,      "Whether train the model")
 # configurations for the model
 flags.DEFINE_integer("seg_dim",     20,         "Embedding size for segmentation, 0 if not used")
 flags.DEFINE_integer("char_dim",    100,        "Embedding size for characters")
@@ -51,8 +52,8 @@ flags.DEFINE_string("train_file",   os.path.join(root_path, "train.txt"),  "Path
 flags.DEFINE_string("dev_file",     os.path.join(root_path, "dev.txt"),    "Path for dev data")
 flags.DEFINE_string("test_file",    os.path.join(root_path, "test.txt"),   "Path for test data")
 
-flags.DEFINE_string("model_type", "idcnn", "Model type, can be idcnn or bilstm")
-#flags.DEFINE_string("model_type", "bilstm", "Model type, can be idcnn or bilstm")
+# flags.DEFINE_string("model_type", "idcnn", "Model type, can be idcnn or bilstm")
+flags.DEFINE_string("model_type", "bilstm", "Model type, can be idcnn or bilstm")
 
 FLAGS = tf.app.flags.FLAGS
 
@@ -122,6 +123,7 @@ def train():
         # create dictionary for word
         if FLAGS.pre_emb:  # use pre-trained embedding
             dico_chars_train = char_mapping(train_sentences, FLAGS.lower)[0]  # dico
+            # dico_chars, char_to_id, id_to_char {dict: 4680}
             dico_chars, char_to_id, id_to_char = augment_with_pretrained(dico_chars_train.copy(), FLAGS.emb_file,
                 list(itertools.chain.from_iterable([[w[0] for w in s] for s in test_sentences])))
         else:

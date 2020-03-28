@@ -13,45 +13,31 @@ class Model(object):
 
         self.config = config
         
-        self.lr = config["lr"]
-        self.char_dim = config["char_dim"]
-        self.lstm_dim = config["lstm_dim"]
-        self.seg_dim = config["seg_dim"]
-
-        self.num_tags = config["num_tags"]
-        self.num_chars = config["num_chars"]
+        self.lr = config["lr"]  # 0.001
+        self.char_dim = config["char_dim"]  # 4680, pre_emb = True
+        self.lstm_dim = config["lstm_dim"]  # 100
+        self.seg_dim = config["seg_dim"]   # 20
+        self.num_tags = config["num_tags"]  # 15
+        self.num_chars = config["num_chars"]  # 4680
         self.num_segs = 4
-
         self.global_step = tf.Variable(0, trainable=False)
         self.best_dev_f1 = tf.Variable(0.0, trainable=False)
         self.best_test_f1 = tf.Variable(0.0, trainable=False)
         self.initializer = initializers.xavier_initializer()
-        
-        
 
-        # add placeholders for the model
-
-        self.char_inputs = tf.placeholder(dtype=tf.int32,
-                                          shape=[None, None],
-                                          name="ChatInputs")
-        self.seg_inputs = tf.placeholder(dtype=tf.int32,
-                                         shape=[None, None],
-                                         name="SegInputs")
-
-        self.targets = tf.placeholder(dtype=tf.int32,
-                                      shape=[None, None],
-                                      name="Targets")
+        #step1, add placeholders for the model
+        self.char_inputs = tf.placeholder(dtype=tf.int32, shape=[None, None], name="ChatInputs")
+        self.seg_inputs = tf.placeholder(dtype=tf.int32, shape=[None, None], name="SegInputs")
+        self.targets = tf.placeholder(dtype=tf.int32, shape=[None, None], name="Targets")
         # dropout keep prob
-        self.dropout = tf.placeholder(dtype=tf.float32,
-                                      name="Dropout")
+        self.dropout = tf.placeholder(dtype=tf.float32, name="Dropout")
 
         used = tf.sign(tf.abs(self.char_inputs))
         length = tf.reduce_sum(used, reduction_indices=1)
         self.lengths = tf.cast(length, tf.int32)
         self.batch_size = tf.shape(self.char_inputs)[0]
         self.num_steps = tf.shape(self.char_inputs)[-1]
-        
-        
+
         #Add model type by crownpku bilstm or idcnn
         self.model_type = config['model_type']
         #parameters for idcnn
@@ -72,7 +58,7 @@ class Model(object):
         self.repeat_times = 4
         self.cnn_output_width = 0
         
-        # embeddings for chinese character and segmentation representation
+        # step2, embeddings for chinese character and segmentation representation
         embedding = self.embedding_layer(self.char_inputs, self.seg_inputs, config)
 
         if self.model_type == 'bilstm':
@@ -155,7 +141,7 @@ class Model(object):
             lstm_cell = {}
             for direction in ["forward", "backward"]:
                 with tf.variable_scope(direction):
-                    lstm_cell[direction] = rnn.CoupledInputForgetGateLSTMCell(
+                    lstm_cell[direction] = tf.contrib.rnn.CoupledInputForgetGateLSTMCell(
                         lstm_dim,
                         use_peepholes=True,
                         initializer=self.initializer,
