@@ -26,14 +26,13 @@ class Config(object):
     max_seq_len = 10
     hidden_size_rnn = 100
     use_stack_rnn = False
-    learning_rate = 0.001
+    learning_rate = 0.0001
     # max_steps = 8000
     num_epoch = 50
     summaries_dir = './Summaries/'
     gpu = 0
 
 
-if __name__ == '__main__':
-    conf = Config()
-    print(len(conf.vocab_map))
-    pass
+# if __name__ == '__main__':
+#     conf = Config()
+

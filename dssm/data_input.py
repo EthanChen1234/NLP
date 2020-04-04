@@ -44,7 +44,7 @@ def convert_word2id(query, vocab_map):
 
 
 def convert_seq2bow(query, vocab_map):
-    bow_ids = np.zeros(conf.nwords)
+    bow_ids = np.zeros(conf.nwords, dtype=np.float16)
     for w in query:
         if w in vocab_map:
             bow_ids[vocab_map[w]] += 1
@@ -126,12 +126,13 @@ def get_data_bow(file_path):
     return data_arr
 
 
-if __name__ == '__main__':
-    # prefix, query_prediction, title, tag, label
-    # query_prediction 为json格式。
-    file_train = './data/oppo_round1_train_20180929.txt'
-    file_vali = './data/oppo_round1_vali_20180929.txt'
-    # data_train = get_data(file_train)
-    data_train = get_data(file_vali)
-    print(len(data_train['query']), len(data_train['doc_pos']), len(data_train['doc_neg']))
-    pass
+# if __name__ == '__main__':
+    # # prefix, query_prediction, title, tag, label
+    # # query_prediction 为json格式。
+    # file_train = 'C:\\DATASET\\DSSM_DATA_OPPO\\oppo_round1_train_20180929_mini.txt'
+    # file_vali = 'C:\\DATASET\\DSSM_DATA_OPPO\\oppo_round1_vali_20180929_mini.txt'
+    # # data_train = get_data(file_train)
+    # data_train = get_data(file_vali)
+    # print(len(data_train['query']), len(data_train['doc_pos']), len(data_train['doc_neg']))
+
+    # data_train = get_data_bow(conf.file_train)
