@@ -37,7 +37,7 @@ flags.DEFINE_boolean("pre_emb",     True,       "Wither use pre-trained embeddin
 flags.DEFINE_boolean("zeros",       True,      "Wither replace digits with zero")
 flags.DEFINE_boolean("lower",       False,       "Wither lower case")
 
-flags.DEFINE_integer("max_epoch",   100,        "maximum training epochs")
+flags.DEFINE_integer("max_epoch",   10,        "maximum training epochs")  # 原始为100
 flags.DEFINE_integer("steps_check", 100,        "steps per checkpoint")
 flags.DEFINE_string("ckpt_path",    "ckpt",      "Path to save model")
 flags.DEFINE_string("summary_path", "summary",      "Path to store summaries")
@@ -148,6 +148,7 @@ def train():
     train_manager = BatchManager(train_data, FLAGS.batch_size)
     dev_manager = BatchManager(dev_data, 100)
     test_manager = BatchManager(test_data, 100)
+
     # make path for store log and model if not exist
     make_path(FLAGS)
     if os.path.isfile(FLAGS.config_file):
@@ -156,7 +157,7 @@ def train():
         config = config_model(char_to_id, tag_to_id)
         save_config(config, FLAGS.config_file)
     make_path(FLAGS)
-
+    # 设置logger，并打印配置参数
     log_path = os.path.join("log", FLAGS.log_file)
     logger = get_logger(log_path)
     print_config(config, logger)
@@ -182,7 +183,7 @@ def train():
                         loss = []
     
                # best = evaluate(sess, model, "dev", dev_manager, id_to_tag, logger)
-                if i%7==0:
+                if i % 7 == 0:
                     save_model(sess, model, FLAGS.ckpt_path, logger)
             #evaluate(sess, model, "test", test_manager, id_to_tag, logger)
 
@@ -211,14 +212,13 @@ def evaluate_line():
 
 
 def main(_):
-
+    
     if FLAGS.train:
         if FLAGS.clean:
             clean(FLAGS)
         train()
     else:
         evaluate_line()
-
 
 if __name__ == "__main__":
     tf.app.run(main)

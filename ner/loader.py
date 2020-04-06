@@ -189,18 +189,18 @@ def load_maps(save_path):
 #     lower = False
 #     zeros = True
 #
-#     # train_path = 'C:\\DATASET\\NER\\train.txt'
-#     train_path = 'D:\\PROJECTS\\DATA\\NER\\train.txt'
+#     train_path = 'C:\\DATASET\\NER\\train.txt'
+#     # train_path = 'D:\\PROJECTS\\DATA\\NER\\train.txt'
 #     train_sentences = load_sentences(train_path, lower, zeros)
 #
 #     tag_scheme = 'iobes'
 #     update_tag_scheme(train_sentences, tag_scheme)
 #     dico_train = char_mapping(train_sentences, lower)[0]
 #
-#     # emb_path = 'C:\\DATASET\\NER\\vec.txt'
-#     # test_path = 'C:\\DATASET\\NER\\test.txt'
-#     emb_path = 'D:\\PROJECTS\\DATA\\NER\\vec.txt'
-#     test_path = 'D:\\PROJECTS\\DATA\\NER\\test.txt'
+#     emb_path = 'C:\\DATASET\\NER\\vec.txt'
+#     test_path = 'C:\\DATASET\\NER\\test.txt'
+#     # emb_path = 'D:\\PROJECTS\\DATA\\NER\\vec.txt'
+#     # test_path = 'D:\\PROJECTS\\DATA\\NER\\test.txt'
 #     test_sentences = load_sentences(test_path, lower, zeros)
 #     import itertools
 #
@@ -213,6 +213,9 @@ def load_maps(save_path):
 #     from data_utils import BatchManager
 #     batch_size = 20
 #     train_manager = BatchManager(train_data, batch_size)
+
+
+
 
 
 

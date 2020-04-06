@@ -10,20 +10,19 @@ from utils import result_to_json
 
 class Model(object):
     def __init__(self, config):
-
         self.config = config
-        
         self.lr = config["lr"]  # 0.001
-        self.char_dim = config["char_dim"]  # 4680, pre_emb = True
+        self.char_dim = config["char_dim"]  # 100, pre_emb = True
         self.lstm_dim = config["lstm_dim"]  # 100
         self.seg_dim = config["seg_dim"]   # 20
         self.num_tags = config["num_tags"]  # 15
         self.num_chars = config["num_chars"]  # 4680
         self.num_segs = 4
+        # 设置变量
         self.global_step = tf.Variable(0, trainable=False)
         self.best_dev_f1 = tf.Variable(0.0, trainable=False)
         self.best_test_f1 = tf.Variable(0.0, trainable=False)
-        self.initializer = initializers.xavier_initializer()
+        self.initializer = initializers.xavier_initializer()  # 初始化
 
         #step1, add placeholders for the model
         self.char_inputs = tf.placeholder(dtype=tf.int32, shape=[None, None], name="ChatInputs")
@@ -64,23 +63,17 @@ class Model(object):
         if self.model_type == 'bilstm':
             # apply dropout before feed to lstm layer
             model_inputs = tf.nn.dropout(embedding, self.dropout)
-
             # bi-directional lstm layer
             model_outputs = self.biLSTM_layer(model_inputs, self.lstm_dim, self.lengths)
-
             # logits for tags
             self.logits = self.project_layer_bilstm(model_outputs)
-        
         elif self.model_type == 'idcnn':
             # apply dropout before feed to idcnn layer
             model_inputs = tf.nn.dropout(embedding, self.dropout)
-
             # ldcnn layer
             model_outputs = self.IDCNN_layer(model_inputs)
-
             # logits for tags
             self.logits = self.project_layer_idcnn(model_outputs)
-        
         else:
             raise KeyError
 
@@ -90,7 +83,7 @@ class Model(object):
         with tf.variable_scope("optimizer"):
             optimizer = self.config["optimizer"]
             if optimizer == "sgd":
-                self.opt = tf.train.GradientDescentOptimizer(self.lr)
+                self.opt = tf.train.GradientDescentOptimizer(self.lr)  # opt - optimizer
             elif optimizer == "adam":
                 self.opt = tf.train.AdamOptimizer(self.lr)
             elif optimizer == "adgrad":
@@ -112,22 +105,19 @@ class Model(object):
         :param char_inputs: one-hot encoding of sentence
         :param seg_inputs: segmentation feature
         :param config: wither use segmentation feature
-        :return: [1, num_steps, embedding size], 
+        :return: [1, num_steps, embedding size]
         """
-
         embedding = []
         with tf.variable_scope("char_embedding" if not name else name), tf.device('/cpu:0'):
-            self.char_lookup = tf.get_variable(
-                    name="char_embedding",
-                    shape=[self.num_chars, self.char_dim],
-                    initializer=self.initializer)
+            self.char_lookup = tf.get_variable(name="char_embedding",
+                                               shape=[self.num_chars, self.char_dim],
+                                               initializer=self.initializer)  # shape [4680, 100]
             embedding.append(tf.nn.embedding_lookup(self.char_lookup, char_inputs))
-            if config["seg_dim"]:
+            if config["seg_dim"]:  # 'seg_dim': 20
                 with tf.variable_scope("seg_embedding"), tf.device('/cpu:0'):
-                    self.seg_lookup = tf.get_variable(
-                        name="seg_embedding",
-                        shape=[self.num_segs, self.seg_dim],
-                        initializer=self.initializer)
+                    self.seg_lookup = tf.get_variable(name="seg_embedding",
+                                                      shape=[self.num_segs, self.seg_dim],
+                                                      initializer=self.initializer)  # shape [4, 20]
                     embedding.append(tf.nn.embedding_lookup(self.seg_lookup, seg_inputs))
             embed = tf.concat(embedding, axis=-1)
         return embed
@@ -155,8 +145,7 @@ class Model(object):
         return tf.concat(outputs, axis=2)
     
     #IDCNN layer 
-    def IDCNN_layer(self, model_inputs, 
-                    name=None):
+    def IDCNN_layer(self, model_inputs, name=None):
         """
         :param idcnn_inputs: [batch_size, num_steps, emb_size] 
         :return: [batch_size, num_steps, cnn_output_width]
@@ -221,7 +210,7 @@ class Model(object):
         :param lstm_outputs: [batch_size, num_steps, 2*lstm_di]
         :return: [batch_size, num_steps, num_tags]
         """
-        with tf.variable_scope("project"  if not name else name):
+        with tf.variable_scope("project" if not name else name):
             with tf.variable_scope("hidden"):
                 W = tf.get_variable("W", shape=[self.lstm_dim*2, self.lstm_dim],
                                     dtype=tf.float32, initializer=self.initializer)
@@ -378,3 +367,7 @@ class Model(object):
         batch_paths = self.decode(scores, lengths, trans)
         tags = [id_to_tag[idx] for idx in batch_paths[0]]
         return result_to_json(inputs[0][0], tags)
+
+
+
+
