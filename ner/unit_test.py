@@ -2,6 +2,7 @@ import tensorflow as tf
 from tensorflow.contrib.layers.python.layers import initializers
 
 
+# embedding layer
 embedding = []
 char_inputs = tf.placeholder(dtype=tf.int32, shape=[None, None])
 seg_inputs = tf.placeholder(dtype=tf.int32, shape=[None, None])
@@ -14,10 +15,16 @@ seg_lookup = tf.get_variable(name="seg_embedding",
                              shape=[4, 3],
                              initializer=initializers.xavier_initializer())  # shape [4, 20]
 embedding.append(tf.nn.embedding_lookup(seg_lookup, seg_inputs))
-
 embed = tf.concat(embedding, axis=-1)
+
+
+# Bilstm Layer
+dropout = tf.placeholder(dtype=tf.float32, name="Dropout")
+model_inputs = tf.nn.dropout(embed, rate=1-dropout)
+model_outputs = self.biLSTM_layer(model_inputs, self.lstm_dim, self.lengths)
+
 
 with tf.Session() as sess:
     tf.global_variables_initializer().run()
-    print(sess.run(embedding, feed_dict={char_inputs: [[23, 24], [0, 1]], seg_inputs: [[0, 1], [1, 2]]}))
-    print(tf.concat(embedding, axis=-1))
+    # sess.run(embed, feed_dict={char_inputs: [[23, 24], [0, 1]], seg_inputs: [[0, 1], [1, 2]]})
+    print(sess.run(model_inputs, feed_dict={char_inputs: [[23, 24], [0, 1]], seg_inputs: [[0, 1], [1, 2]], dropout: 0.5}))
