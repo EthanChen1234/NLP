@@ -131,17 +131,15 @@ class Model(object):
             lstm_cell = {}
             for direction in ["forward", "backward"]:
                 with tf.variable_scope(direction):
-                    lstm_cell[direction] = tf.contrib.rnn.CoupledInputForgetGateLSTMCell(
-                        lstm_dim,
-                        use_peepholes=True,
-                        initializer=self.initializer,
-                        state_is_tuple=True)
-            outputs, final_states = tf.nn.bidirectional_dynamic_rnn(
-                lstm_cell["forward"],
-                lstm_cell["backward"],
-                model_inputs,
-                dtype=tf.float32,
-                sequence_length=lengths)
+                    lstm_cell[direction] = tf.contrib.rnn.CoupledInputForgetGateLSTMCell(lstm_dim,
+                                                                                         use_peepholes=True,
+                                                                                         initializer=self.initializer,
+                                                                                         state_is_tuple=True)
+            outputs, final_states = tf.nn.bidirectional_dynamic_rnn(lstm_cell["forward"],
+                                                                    lstm_cell["backward"],
+                                                                    model_inputs,
+                                                                    dtype=tf.float32,
+                                                                    sequence_length=lengths)
         return tf.concat(outputs, axis=2)
     
     #IDCNN layer 
