@@ -35,7 +35,7 @@ class Model(object):
         length = tf.reduce_sum(used, reduction_indices=1)
         self.lengths = tf.cast(length, tf.int32)
         self.batch_size = tf.shape(self.char_inputs)[0]
-        self.num_steps = tf.shape(self.char_inputs)[-1]
+        self.num_steps = tf.shape(self.char_inputs)[-1]  # 句子长度
 
         #Add model type by crownpku bilstm or idcnn
         self.model_type = config['model_type']
@@ -211,11 +211,11 @@ class Model(object):
         with tf.variable_scope("project" if not name else name):
             with tf.variable_scope("hidden"):
                 W = tf.get_variable("W", shape=[self.lstm_dim*2, self.lstm_dim],
-                                    dtype=tf.float32, initializer=self.initializer)
+                                    dtype=tf.float32, initializer=self.initializer)  # [100*2, 100]
 
-                b = tf.get_variable("b", shape=[self.lstm_dim], dtype=tf.float32,
+                b = tf.get_variable("b", shape=[self.lstm_dim], dtype=tf.float32,    # [100]
                                     initializer=tf.zeros_initializer())
-                output = tf.reshape(lstm_outputs, shape=[-1, self.lstm_dim*2])####[batch_size*num_steps, lstm_dim*2]   [ batch_size*num_steps, lstm_dim]
+                output = tf.reshape(lstm_outputs, shape=[-1, self.lstm_dim*2])  # [batch_size*num_steps, lstm_dim*2]
                 hidden = tf.tanh(tf.nn.xw_plus_b(output, W, b))
 
             # project to score of tags
