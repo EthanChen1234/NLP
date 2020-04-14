@@ -33,7 +33,7 @@ class Model(object):
 
         used = tf.sign(tf.abs(self.char_inputs))
         length = tf.reduce_sum(used, reduction_indices=1)
-        self.lengths = tf.cast(length, tf.int32)
+        self.lengths = tf.cast(length, tf.int32)  # [batch内每个序列的长度]
         self.batch_size = tf.shape(self.char_inputs)[0]
         self.num_steps = tf.shape(self.char_inputs)[-1]  # 句子长度
 
@@ -256,26 +256,26 @@ class Model(object):
         :param project_logits: [batch_size, num_steps, num_tags]
         :return: scalar loss
         """
-        with tf.variable_scope("crf_loss"  if not name else name):
+        with tf.variable_scope("crf_loss" if not name else name):
             small = -1000.0
             # pad logits for crf loss
-            start_logits = tf.concat(
-                [small * tf.ones(shape=[self.batch_size, 1, self.num_tags]), tf.zeros(shape=[self.batch_size, 1, 1])], axis=-1)
-            pad_logits = tf.cast(small * tf.ones([self.batch_size, self.num_steps, 1]), tf.float32)
-            logits = tf.concat([project_logits, pad_logits], axis=-1)
-            logits = tf.concat([start_logits, logits], axis=1)
-            targets = tf.concat(
-                [tf.cast(self.num_tags*tf.ones([self.batch_size, 1]), tf.int32), self.targets], axis=-1)
+            start_logits = tf.concat([small * tf.ones(shape=[self.batch_size, 1, self.num_tags]),
+                                      tf.zeros(shape=[self.batch_size, 1, 1])], axis=-1)  # [batch_size, 1, num_tags+1]
+            pad_logits = tf.cast(small * tf.ones([self.batch_size, self.num_steps, 1]),
+                                 tf.float32)  # [batch_size, num_steps, 1]
+            logits = tf.concat([project_logits, pad_logits], axis=-1)  # [batch_size, num_steps, num_tags+1]
+            logits = tf.concat([start_logits, logits], axis=1)  # [batch_size, num_steps+1, num_tags+1]
 
-            self.trans = tf.get_variable(
-                "transitions",
-                shape=[self.num_tags + 1, self.num_tags + 1],
-                initializer=self.initializer)
-            log_likelihood, self.trans = crf_log_likelihood(
-                inputs=logits,
-                tag_indices=targets,
-                transition_params=self.trans,
-                sequence_lengths=lengths+1)
+            targets = tf.concat([tf.cast(self.num_tags*tf.ones([self.batch_size, 1]), tf.int32), self.targets],
+                                axis=-1)  # [[batch_size x num_tags, num_tags], [batch_size, num_steps]]
+
+            self.trans = tf.get_variable("transitions",
+                                         shape=[self.num_tags + 1, self.num_tags + 1],
+                                         initializer=self.initializer)
+            log_likelihood, self.trans = crf_log_likelihood(inputs=logits,
+                                                            tag_indices=targets,
+                                                            transition_params=self.trans,
+                                                            sequence_lengths=lengths+1)
             return tf.reduce_mean(-log_likelihood)
 
     def create_feed_dict(self, is_train, batch):
