@@ -267,7 +267,7 @@ class Model(object):
             logits = tf.concat([start_logits, logits], axis=1)  # [batch_size, num_steps+1, num_tags+1]
 
             targets = tf.concat([tf.cast(self.num_tags*tf.ones([self.batch_size, 1]), tf.int32), self.targets],
-                                axis=-1)  # [[batch_size x num_tags, num_tags], [batch_size, num_steps]]
+                                axis=-1)  # # [batch_size, num_steps+1]
 
             self.trans = tf.get_variable("transitions",
                                          shape=[self.num_tags + 1, self.num_tags + 1],
